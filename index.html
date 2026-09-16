@@ -1,28 +1,207 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>A Rose For You</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>A Rose For You — Parametric 3D Rose</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Georgia,serif}canvas{display:block}#title{position:fixed;top:18vh;left:0;right:0;text-align:center;color:#d72d68;font-size:clamp(34px,6vw,72px);z-index:3;pointer-events:none}#formula{position:fixed;bottom:6vh;left:0;right:0;text-align:center;color:#d99aaa;font-size:clamp(14px,2vw,22px);line-height:2;z-index:3;pointer-events:none}#hint{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#777;font:12px system-ui;z-index:4}</style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Georgia,serif}
+  #info{position:fixed;top:22px;left:0;right:0;text-align:center;color:#d72d68;
+        font-size:clamp(28px,5vw,58px);letter-spacing:.02em;z-index:5;pointer-events:none}
+  #hint{position:fixed;bottom:16px;left:0;right:0;text-align:center;color:#888;
+        font:13px system-ui,sans-serif;z-index:5;pointer-events:none}
+  canvas{display:block}
+</style>
 </head>
 <body>
-<div id="title">A Rose For You</div>
-<div id="formula">φ(θ) = π/2 e<sup>−θ/8π</sup> &nbsp;&nbsp;&nbsp; X(θ) = 1 − 1/2((5/4)(1 − (θ mod 2π)/π)<sup>2</sup> − 1/4)<sup>2</sup></div>
+<div id="info">A Rose For You</div>
 <div id="hint">Drag to rotate • Scroll to zoom • Double-click to pause</div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
+
 <script type="module">
-import * as THREE from 'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x000000);
-const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.01,100);camera.position.set(0,-4,2.2);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;document.body.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.autoRotate=true;controls.autoRotateSpeed=.55;controls.target.set(0,0,.25);controls.minDistance=2.2;controls.maxDistance=8;
-scene.add(new THREE.AmbientLight(0xffffff,1.8));let l=new THREE.PointLight(0xff5d9b,10,10);l.position.set(-2,-2,4);scene.add(l);let f=new THREE.PointLight(0x551133,7,8);f.position.set(2,2,1);scene.add(f);
-function X(t){let q=1-(t%(2*Math.PI))/Math.PI;return 1-.5*Math.pow(1.25*q*q-.25,2)}
-function phi(t){return Math.PI/2*Math.exp(-t/(8*Math.PI))}
-function petal(offset,scale,layer){const U=150,V=18,p=[],ind=[];for(let i=0;i<=U;i++){let u=i/U,t=u*2*Math.PI+offset,fold=Math.pow(Math.max(0,Math.cos(5*t)),2.2),base=.2+scale*(.42+.66*fold),b=phi(t-offset+layer*.35);for(let j=0;j<=V;j++){let v=j/V,a=(v-.5)*2,w=.5*scale*Math.sin(Math.PI*v)*(.72+.28*fold),r=base*(.52+.48*v)+a*w*.12,x=r*Math.sin(t),y=r*Math.cos(t),z=.1+.48*scale*Math.pow(v,1.55)+.13*Math.sin(Math.PI*v)*fold;z+=.18*X(t)*(x*Math.cos(b)-y*Math.sin(b));z+=layer*.055+.035*Math.sin(2*t+layer);p.push(x,y,z)}}for(let i=0;i<U;i++)for(let j=0;j<V;j++){let a=i*(V+1)+j,b=a+V+1;ind.push(a,b,a+1,b,b+1,a+1)}let g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setIndex(ind);g.computeVertexNormals();let m=new THREE.MeshPhysicalMaterial({color:new THREE.Color().setHSL(.94,.92,.47+layer*.012),roughness:.5,metalness:.03,side:THREE.DoubleSide,transparent:true,opacity:.94,wireframe:true});return new THREE.Mesh(g,m)}
-const rose=new THREE.Group();for(let layer=0;layer<7;layer++){let n=5+layer;for(let k=0;k<n;k++)rose.add(petal(k/n*2*Math.PI+layer*.31,1.02-layer*.075,layer))}rose.rotation.x=-.18;scene.add(rose);
-const axisMat=new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:.45});function axis(a,b){let g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a),new THREE.Vector3(...b)]);scene.add(new THREE.Line(g,axisMat))}axis([0,0,-1.05],[0,0,1.35]);axis([-1.6,0,0],[1.6,0,0]);
-addEventListener('dblclick',()=>controls.autoRotate=!controls.autoRotate);addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-function animate(t){requestAnimationFrame(animate);let s=1+.018*Math.sin(t*.00115);rose.scale.set(s,s,s);controls.update();renderer.render(scene,camera)}animate(0);
-</script></body></html>
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, .01, 100);
+camera.position.set(0, -3.9, 2.15);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = .06;
+controls.minDistance = 2.2;
+controls.maxDistance = 8;
+controls.target.set(0,0,.25);
+controls.autoRotate = true;
+controls.autoRotateSpeed = .65;
+
+scene.add(new THREE.AmbientLight(0xffffff, 1.7));
+const key = new THREE.PointLight(0xff78aa, 9, 10);
+key.position.set(-2,-2,4);
+scene.add(key);
+const fill = new THREE.PointLight(0x551133, 7, 8);
+fill.position.set(2,2,1);
+scene.add(fill);
+
+// The profile shown in the reference image.
+function X(theta){
+  const q = 1 - ((theta % (2*Math.PI)) / Math.PI);
+  return 1 - 0.5 * Math.pow((5/4)*q*q - 1/4, 2);
+}
+function phi(theta){
+  return Math.PI/2 * Math.exp(-theta/(8*Math.PI));
+}
+
+// Petal surface: theta = around the rose, v = across the petal.
+// The reference's X(theta) controls the petal radius while phi(theta)
+// gradually bends the petals upward.
+function makePetal(offset, scale, layer){
+  const Nu = 180, Nv = 20;
+  const pos = [], uv = [], idx = [];
+
+  for(let i=0;i<=Nu;i++){
+    const u = i/Nu;
+    const th = u*2*Math.PI + offset;
+
+    // Strong 5-fold/rose-like petal rhythm.
+    const petal = Math.pow(Math.max(0, Math.cos(5*th)), 2.2);
+    const baseR = 0.20 + scale*(0.42 + 0.66*petal);
+
+    const bend = phi(th - offset + layer*0.35);
+    for(let j=0;j<=Nv;j++){
+      const v = j/Nv;                 // 0..1 across petal
+      const across = (v-.5)*2;
+
+      // Petal becomes narrower at its outer tip.
+      const width = (0.50*scale) * Math.sin(Math.PI*v) * (0.72+0.28*petal);
+      const r = baseR * (0.52 + 0.48*v) + across*width*0.12;
+
+      let x = r*Math.sin(th);
+      let y = r*Math.cos(th);
+
+      // Fold each petal upward toward its edge.
+      let z = 0.10 + 0.48*scale*Math.pow(v,1.55)
+            + 0.13*Math.sin(Math.PI*v)*petal;
+
+      // Apply the same X(phi) style deformation visible in the reference.
+      const xx = x*Math.cos(bend) - y*Math.sin(bend);
+      z += 0.18*X(th)*xx;
+
+      // Slight radial tilt creates overlapping petals.
+      z += layer*0.055 + 0.035*Math.sin(2*th + layer);
+
+      pos.push(x,y,z);
+      uv.push(u,v);
+    }
+  }
+
+  for(let i=0;i<Nu;i++){
+    for(let j=0;j<Nv;j++){
+      const a=i*(Nv+1)+j;
+      const b=a+Nv+1;
+      idx.push(a,b,a+1, b,b+1,a+1);
+    }
+  }
+
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color().setHSL(.94, .92, .48 + layer*.015),
+    roughness:.48,
+    metalness:.04,
+    side:THREE.DoubleSide,
+    transparent:true,
+    opacity:.94,
+    clearcoat:.35
+  });
+
+  const mesh = new THREE.Mesh(g,mat);
+  mesh.rotation.z = offset*.15;
+  return mesh;
+}
+
+// Several overlapping rings produce the layered rose seen in the image.
+const rose = new THREE.Group();
+for(let layer=0; layer<6; layer++){
+  const n = 5 + layer;
+  for(let k=0;k<n;k++){
+    const offset = (k/n)*2*Math.PI + layer*0.31;
+    rose.add(makePetal(offset, 1.02-layer*.075, layer));
+  }
+}
+rose.rotation.x = -0.18;
+scene.add(rose);
+
+// Small central spiral/rosette.
+const center = new THREE.Group();
+for(let k=0;k<7;k++){
+  const curve = new THREE.CatmullRomCurve3([]);
+  const pts=[];
+  for(let i=0;i<35;i++){
+    const t=i/34;
+    const a=t*Math.PI*2.7 + k*.9;
+    const r=.04 + .20*t;
+    pts.push(new THREE.Vector3(
+      r*Math.sin(a),
+      r*Math.cos(a),
+      .54 + .16*Math.sin(Math.PI*t) + k*.012
+    ));
+  }
+  curve.points = pts;
+  const tube = new THREE.TubeGeometry(curve,80,.0085,5,false);
+  const m = new THREE.MeshBasicMaterial({color:0xff3d82});
+  center.add(new THREE.Mesh(tube,m));
+}
+scene.add(center);
+
+// Thin mathematical-looking axis lines.
+const axisMat = new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:.45});
+function axis(a,b){
+  const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a),new THREE.Vector3(...b)]);
+  scene.add(new THREE.Line(g,axisMat));
+}
+axis([0,0,-1.05],[0,0,1.35]);
+axis([-1.6,0,0],[1.6,0,0]);
+
+addEventListener("dblclick",()=>controls.autoRotate=!controls.autoRotate);
+addEventListener("resize",()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+
+const clock = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const t=clock.getElapsedTime();
+  // Very subtle breathing, like a living flower.
+  const s=1 + .018*Math.sin(t*1.15);
+  rose.scale.set(s,s,s);
+  center.scale.set(s,s,s);
+  controls.update();
+  renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
