@@ -1,15 +1,233 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mathematical Lotus</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:system-ui,sans-serif}#title{position:fixed;top:24px;width:100%;text-align:center;color:#ff9ac5;font-size:clamp(24px,6vw,46px);z-index:2;pointer-events:none;text-shadow:0 0 18px #ff3d82}#hint{position:fixed;bottom:16px;width:100%;text-align:center;color:#aaa;font-size:13px;z-index:2;pointer-events:none}canvas{display:block}</style></head>
-<body><div id="title">Radiant Lotus</div><div id="hint">Screen-facing • Drag to inspect • Scroll/pinch to zoom</div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
-<script type="module">
-import * as THREE from 'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';import{createLotus}from'./flowers/lotus.js';
-const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,100);camera.position.set(0,1.9,9.2);camera.lookAt(0,1.9,0);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;document.body.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=4.5;controls.maxDistance=18;controls.target.set(0,1.9,0);controls.autoRotate=false;
-scene.add(new THREE.AmbientLight(0xffffff,1.15));const key=new THREE.DirectionalLight(0xffb6d5,3);key.position.set(0,5,8);scene.add(key);const fill=new THREE.PointLight(0xff3d91,12,15);fill.position.set(0,2,4);scene.add(fill);
-const lotus=createLotus({petals:180});lotus.position.set(0,2.05,0);lotus.scale.setScalar(1.35);scene.add(lotus);
-const curve=new THREE.LineCurve3(new THREE.Vector3(0,-1.2,0),new THREE.Vector3(0,.55,0));const stem=new THREE.Mesh(new THREE.TubeGeometry(curve,20,.055,8,false),new THREE.MeshStandardMaterial({color:0x236b3a,roughness:.8}));scene.add(stem);
-function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-</script></body></html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Aurora Dahlia — Front Facing</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #1b0a2b 0%, #050011 100%);
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      touch-action: none;
+    }
+    #info {
+      position: fixed;
+      top: 30px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #ffb84d;
+      font-size: clamp(26px, 7vw, 42px);
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 15px rgba(255, 184, 77, 0.7);
+      z-index: 5;
+      pointer-events: none;
+    }
+    #hint {
+      position: fixed;
+      bottom: 25px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #9977aa;
+      font-size: clamp(12px, 3vw, 15px);
+      letter-spacing: 0.05em;
+      z-index: 5;
+      pointer-events: none;
+    }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <div id="info">Aurora Dahlia</div>
+  <div id="hint">Swipe to rotate • Pinch to zoom</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    // 1. Basic Setup
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050011, 0.03);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    // ক্যামেরা সরাসরি সামনের দিকে ফেস করে সেট করা হলো
+    camera.position.set(0, 0, 11);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 4;
+    controls.maxDistance = 20;
+    controls.target.set(0, 0, 0);
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.0;
+
+    // 2. Magical Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    
+    const centerLight = new THREE.PointLight(0xffdd00, 15, 12);
+    centerLight.position.set(0, 0, 2);
+    scene.add(centerLight);
+
+    const rimLight = new THREE.DirectionalLight(0xff0088, 3);
+    rimLight.position.set(0, 5, 5);
+    scene.add(rimLight);
+
+    // 3. Create a Single Optimized Petal Geometry
+    function createPetal() {
+      const uSeg = 10, vSeg = 4;
+      const pos = [], idx = [];
+      for (let i = 0; i <= uSeg; i++) {
+        const u = i / uSeg; 
+        const w = Math.sin(Math.pow(u, 0.7) * Math.PI) * (1.0 - u * 0.1); 
+        for (let j = 0; j <= vSeg; j++) {
+          const v = (j / vSeg) * 2 - 1; 
+          
+          const x = w * v * 0.25;
+          const y = u * 2.5; 
+          const z = w * (1 - Math.abs(v)) * 0.15 - Math.pow(u, 2) * 0.4;
+          pos.push(x, y, z);
+        }
+      }
+
+      for (let i = 0; i < uSeg; i++) {
+        for (let j = 0; j < vSeg; j++) {
+          const a = i * (vSeg + 1) + j;
+          const b = a + vSeg + 1;
+          idx.push(a, b, a + 1, b, b + 1, a + 1);
+        }
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      geo.setIndex(idx);
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    // 4. Instanced Mesh for 800 Petals
+    const petalGeo = createPetal();
+    const petalCount = 800;
+    const petalMat = new THREE.MeshPhysicalMaterial({
+      roughness: 0.1,
+      metalness: 0.2,
+      clearcoat: 0.6,
+      side: THREE.DoubleSide
+    });
+
+    const dahlia = new THREE.InstancedMesh(petalGeo, petalMat, petalCount);
+    // পুরো ফুলটিকে ঘুরিয়ে সরাসরি স্ক্রিনের দিকে মুখ করে দেওয়া হলো
+    dahlia.rotation.x = Math.PI / 2;
+
+    const dummy = new THREE.Object3D();
+    const petalData = [];
+
+    const colorInner = new THREE.Color(0xffe600); 
+    const colorMid = new THREE.Color(0xff0066);   
+    const colorOuter = new THREE.Color(0x1a0066); 
+    const tempColor = new THREE.Color();
+
+    for (let i = 0; i < petalCount; i++) {
+      const t = i / petalCount; 
+      const goldenAngle = 2.39996323; 
+      const angle = i * goldenAngle;
+      
+      petalData.push({ t, angle });
+
+      if (t < 0.4) {
+        tempColor.copy(colorInner).lerp(colorMid, t / 0.4);
+      } else {
+        tempColor.copy(colorMid).lerp(colorOuter, (t - 0.4) / 0.6);
+      }
+      dahlia.setColorAt(i, tempColor);
+    }
+    
+    dahlia.instanceColor.needsUpdate = true;
+    scene.add(dahlia);
+
+    // Glowing Core
+    const coreGeo = new THREE.SphereGeometry(0.4, 32, 16);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xffddaa });
+    scene.add(new THREE.Mesh(coreGeo, coreMat));
+
+    // 5. Update Positions (Animation)
+    function updatePetals(time) {
+      for (let i = 0; i < petalCount; i++) {
+        const { t, angle } = petalData[i];
+        
+        const wave = Math.sin(t * 12 - time * 2) * 0.15;
+        const radius = Math.pow(t, 0.5) * 5.5; 
+        const height = -Math.pow(radius, 2) * 0.12 + wave; 
+        
+        dummy.position.set(
+          radius * Math.cos(angle),
+          height,
+          radius * Math.sin(angle)
+        );
+        
+        const outwardTilt = 0.5 + t * 3.0; 
+        const lookTarget = new THREE.Vector3(
+          dummy.position.x, 
+          dummy.position.y - outwardTilt, 
+          dummy.position.z
+        );
+        
+        const quaternion = new THREE.Quaternion().setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          lookTarget.clone().sub(dummy.position).normalize()
+        );
+        
+        dummy.quaternion.copy(quaternion);
+        
+        const scale = 0.1 + t * 0.9 + wave * 0.2;
+        dummy.scale.set(scale, scale, scale);
+        
+        dummy.updateMatrix();
+        dahlia.setMatrixAt(i, dummy.matrix);
+      }
+      dahlia.instanceMatrix.needsUpdate = true;
+    }
+
+    // 6. Responsive Resize
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // 7. Animation Loop
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const time = clock.getElapsedTime();
+
+      updatePetals(time);
+      
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    
+    animate();
+  </script>
+</body>
+</html>
