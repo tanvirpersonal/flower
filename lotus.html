@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Radiant Lotus — Phyllotaxis Math</title>
+  <style>
+    html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(circle at center,#1a0b2e 0%,#000 100%);font-family:'Segoe UI',Tahoma,sans-serif;touch-action:none}
+    #info{position:fixed;top:30px;left:0;right:0;text-align:center;color:#ff7eb3;font-size:clamp(24px,6vw,42px);font-weight:300;letter-spacing:.05em;text-shadow:0 0 15px rgba(255,126,179,.5);z-index:5;pointer-events:none}
+    #hint{position:fixed;bottom:25px;left:0;right:0;text-align:center;color:#aaa;font-size:clamp(12px,3vw,15px);letter-spacing:.05em;z-index:5;pointer-events:none}
+    canvas{display:block}
+  </style>
+</head>
+<body>
+<div id="info">Radiant Lotus</div>
+<div id="hint">Swipe to rotate • Pinch to zoom • Double-tap to pause</div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x0a0515,0.06);
+const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);
+camera.position.set(0,4,6);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.dampingFactor=.05;controls.minDistance=2;controls.maxDistance=12;
+controls.target.set(0,.5,0);controls.autoRotate=true;controls.autoRotateSpeed=.8;
+scene.add(new THREE.AmbientLight(0xffffff,.6));
+const pointLight=new THREE.PointLight(0xff0088,15,10);pointLight.position.set(0,1,0);scene.add(pointLight);
+const topLight=new THREE.DirectionalLight(0xffddaa,2);topLight.position.set(3,10,2);scene.add(topLight);
+
+function createPetalGeometry(length,width,bend,colorA,colorB){
+  const uSegs=25,vSegs=10,pos=[],cols=[],idx=[];
+  const cA=new THREE.Color(colorA),cB=new THREE.Color(colorB),tempC=new THREE.Color();
+  for(let i=0;i<=uSegs;i++){
+    const u=i/uSegs;tempC.copy(cA).lerp(cB,Math.pow(u,.6));
+    for(let j=0;j<=vSegs;j++){
+      const v=j/vSegs*2-1;
+      let w=Math.sin(u*Math.PI)*(1-.2*u);
+      if(u<.1)w=(u/.1)*Math.sin(.1*Math.PI);
+      const x=width*v*w,y=length*u,z=bend*Math.pow(u,1.8)-.15*Math.pow(v,2)*u;
+      pos.push(x,y,z);cols.push(tempC.r,tempC.g,tempC.b);
+    }
+  }
+  for(let i=0;i<uSegs;i++)for(let j=0;j<vSegs;j++){
+    const a=i*(vSegs+1)+j,b=a+vSegs+1;idx.push(a,b,a+1,b,b+1,a+1);
+  }
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));geo.setIndex(idx);geo.computeVertexNormals();return geo;
+}
+const petalMat=new THREE.MeshPhysicalMaterial({vertexColors:true,roughness:.3,metalness:.1,clearcoat:.5,side:THREE.DoubleSide,transparent:true,opacity:.92});
+const flowerGroup=new THREE.Group();const N=180,goldenAngle=2.39996323;
+const centerColor=new THREE.Color(0xffe259),midColor=new THREE.Color(0xff007f),edgeColor=new THREE.Color(0x3a0ca3);
+for(let n=1;n<=N;n++){
+  const radius=.18*Math.sqrt(n),theta=n*goldenAngle,tColor=n/N;
+  const col1=new THREE.Color().copy(centerColor).lerp(midColor,tColor*1.5).getHex();
+  const col2=new THREE.Color().copy(midColor).lerp(edgeColor,tColor).getHex();
+  const length=.6+radius*.45,width=.25+radius*.08,bend=.3+radius*.2;
+  const petal=new THREE.Mesh(createPetalGeometry(length,width,bend,col1,col2),petalMat);
+  const wrapper=new THREE.Group();wrapper.rotation.y=-theta;petal.position.z=radius;
+  const baseTilt=(Math.PI/2)*(1-Math.exp(-radius*.6));petal.rotation.x=baseTilt;petal.userData={baseTilt,radius};
+  wrapper.add(petal);flowerGroup.add(wrapper);
+}
+const core=new THREE.Mesh(new THREE.SphereGeometry(.25,32,16),new THREE.MeshBasicMaterial({color:0xffddaa}));flowerGroup.add(core);
+scene.add(flowerGroup);
+addEventListener('dblclick',()=>controls.autoRotate=!controls.autoRotate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+const clock=new THREE.Clock();
+function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();
+  flowerGroup.children.forEach(wrapper=>{if(wrapper.children[0]?.isMesh&&wrapper.children[0].geometry?.type==='BufferGeometry'){
+    const mesh=wrapper.children[0],{baseTilt,radius}=mesh.userData;mesh.rotation.x=baseTilt+Math.sin(t*1.5-radius*2.5)*.08;
+  }});
+  flowerGroup.position.y=Math.sin(t*1.2)*.1;controls.update();renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
