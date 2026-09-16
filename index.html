@@ -1,16 +1,15 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mathematical Lotus</title><style>html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(circle,#180b25,#000 72%);font-family:system-ui,sans-serif}#title{position:fixed;top:24px;width:100%;text-align:center;color:#ff7eb3;font-size:clamp(24px,6vw,46px);z-index:2;pointer-events:none;text-shadow:0 0 18px #ff3d82}#hint{position:fixed;bottom:16px;width:100%;text-align:center;color:#aaa;font-size:13px;z-index:2;pointer-events:none}canvas{display:block}</style></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mathematical Lotus</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:system-ui,sans-serif}#title{position:fixed;top:24px;width:100%;text-align:center;color:#ff9ac5;font-size:clamp(24px,6vw,46px);z-index:2;pointer-events:none;text-shadow:0 0 18px #ff3d82}#hint{position:fixed;bottom:16px;width:100%;text-align:center;color:#aaa;font-size:13px;z-index:2;pointer-events:none}canvas{display:block}</style></head>
 <body><div id="title">Radiant Lotus</div><div id="hint">Screen-facing • Drag to inspect • Scroll/pinch to zoom</div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';import{createLotus}from'./flowers/lotus.js';
-const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,100);camera.position.set(0,1.8,10);camera.lookAt(0,1.8,0);
+const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,100);camera.position.set(0,1.9,9.2);camera.lookAt(0,1.9,0);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;document.body.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=5;controls.maxDistance=18;controls.target.set(0,1.8,0);controls.autoRotate=false;
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=4.5;controls.maxDistance=18;controls.target.set(0,1.9,0);controls.autoRotate=false;
 scene.add(new THREE.AmbientLight(0xffffff,1.15));const key=new THREE.DirectionalLight(0xffb6d5,3);key.position.set(0,5,8);scene.add(key);const fill=new THREE.PointLight(0xff3d91,12,15);fill.position.set(0,2,4);scene.add(fill);
-const lotus=createLotus({petals:180});lotus.position.set(0,1.9,0);lotus.scale.setScalar(1.15);scene.add(lotus);
-const curve=new THREE.LineCurve3(new THREE.Vector3(0,-.8,0),new THREE.Vector3(0,.55,0));const stem=new THREE.Mesh(new THREE.TubeGeometry(curve,20,.055,8,false),new THREE.MeshStandardMaterial({color:0x236b3a,roughness:.8}));scene.add(stem);
-const ground=new THREE.Mesh(new THREE.CircleGeometry(4.5,64),new THREE.MeshBasicMaterial({color:0x08030d,transparent:true,opacity:.5}));ground.rotation.x=-Math.PI/2;ground.position.y=-.8;scene.add(ground);
+const lotus=createLotus({petals:180});lotus.position.set(0,2.05,0);lotus.scale.setScalar(1.35);scene.add(lotus);
+const curve=new THREE.LineCurve3(new THREE.Vector3(0,-1.2,0),new THREE.Vector3(0,.55,0));const stem=new THREE.Mesh(new THREE.TubeGeometry(curve,20,.055,8,false),new THREE.MeshStandardMaterial({color:0x236b3a,roughness:.8}));scene.add(stem);
 function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script></body></html>
